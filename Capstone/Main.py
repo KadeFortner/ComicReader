@@ -1,8 +1,6 @@
 # Kade Fortner
 # Capstone stuff
 
-import numpy as np
-import cv2
 from PIL import Image
 
 
@@ -36,12 +34,14 @@ count = 0;
 # designated color spectrum. In this case, black.
 for i in range(width):
     for j in range(height):
-        if isBlack(pix[i, j], 0, 155):
+        if isBlack(pix[i, j], 0, 105):
             count = count + 1
             print("FOUND A BLACKish PIXEL AT X = " + str(i) + " and Y = " + str(j))
             print(pix[i, j])
             # This will mask the found pixels in blue in a new image.
             newIm.putpixel((i, j), (0, 0, 255))
+        else:
+            print("NON-COLORED PIXEL AT X = "+ str(i) + " and Y = " + str(j))
 
 # We end by showing our current count of total pixels found/confirmed, then show our previous image, followed by the
 # new image, masked in blue.
