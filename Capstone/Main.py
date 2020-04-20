@@ -2,7 +2,7 @@
 # Capstone stuff
 
 from PIL import Image
-
+import time
 
 # This loads our image, determines it's height and width to prepare a new image, then determines the RGB values for
 # each pixel.
@@ -14,13 +14,15 @@ pixel_values = list(im.getdata())
 pix_val_flat = [x for sets in pixel_values for x in sets]
 # A list containing all taken pixels, i.e. all panels
 takenPix = []
+panels = 0
 Image.MAX_IMAGE_PIXELS = None
 
 
 # isBlack checks each R, G, and B value of the designated pixel
 # it then checks to make sure the values correspond with the minimum and maximum values.
 # This ensures that our pixel is within the tolerance we allow for the color(s) we choose.
-def isBlack(pixel, minValue, maxValue):
+def isBlack(pixel, minValue):
+    maxValue = 199
     if minValue <= pixel[0] <= maxValue:
         print("R = ", pixel[0])
         if minValue <= pixel[1] <= maxValue:
@@ -32,53 +34,72 @@ def isBlack(pixel, minValue, maxValue):
 
 # Panel finding function
 def findPanel(image):
-    print(width)
-    print(height)
-    i = 0
-    j = 0
-    exit = 0
-    while exit == 0:
-        while (i * j) not in takenPix:
-            for j in range(height):
-                for i in range(width):
-                    if not isBlack(pix[i, j], 0, 199):
+    # We go through each pixel
+    for j in range(height):
+        for i in range(width):
+            # We store found taken pixels in our takenPix list
+            if (i, j) not in takenPix:
+                # Using our isBlack function, we determine if our pixel is black-ish
+                if not isBlack(pix[i, j], 0):
+                    # If the pixel is not black, we move to the right
+                    i = i + 1
+                    print("i = ", i, ". j = ", j)
+                elif isBlack(pix[i, j], 0):
+                    print("FOUND A BLACKish PIXEL AT i = " + str(i) + " and j = " + str(j))
+
+                    # When the first black pixel is found, we assume it the start of the panel
+                    # We set our cropping coordinates accordingly
+                    top = j
+                    left = i
+
+                    # From here, we continue to the right until we encounter a non-black pixel
+                    while isBlack(pix[i, j], 0):
+                        print("FOUND A BLACKish PIXEL AT i = " + str(i) + " and j = " + str(j))
                         i = i + 1
                         print("i = ", i, ". j = ", j)
-                    elif isBlack(pix[i, j], 0, 243):
-                        print("FOUND A BLACKish PIXEL AT X = " + str(i) + " and Y = " + str(j))
-                        takenPix.append((i * j))
-                        top = i
-                        print("Top = ", top)
-                        left = j
-                        print("Left = ", left)
-                        while isBlack(pix[i, j], 0, 243):
-                            print("FOUND A BLACKish PIXEL AT X = " + str(i) + " and Y = " + str(j))
-                            i = i + 1
-                            print("i = ", i, ". j = ", j)
-                        i = i - 1
+
+                    # We move to the left, to our last found black pixel
+                    i = i - 1
+                    print("i = ", i, ". j = ", j)
+
+                    # We now move to the downwards until we find a non-black pixel
+                    while isBlack(pix[i, j], 0):
+                        print("FOUND A BLACKish PIXEL AT i = " + str(i) + " and j = " + str(j))
+                        j = j + 1
                         print("i = ", i, ". j = ", j)
-                        right = i
-                        print("Right = ", right)
-                        while isBlack(pix[i, j], 0, 243):
-                            print("FOUND A BLACKish PIXEL AT X = " + str(i) + " and Y = " + str(j))
-                            j = j + 1
-                            print("i = ", i, ". j = ", j)
-                        bottom = j
-                        print("Bottom = ", bottom)
-                        print("Done with first panel")
 
-                        takenPix.append(i * j)
-                        panel = im.crop((left, top, right, bottom))
+                    # Once found, we move back to our last black pixel, and set our bottom-right coordinates for
+                    # cropping
+                    j = j - 1
+                    right = i
+                    bottom = j
+                    print("Top = ", top)
+                    print("Left = ", left)
+                    print("Right = ", right)
+                    print("Bottom = ", bottom)
+                    # Add this to our number of panels found
+                    global panels
+                    panels = panels + 1
+                    print("Done with", panels, "panel(s)")
+                    # We now store the entirety of the panel's coordinates
+                    for x in range(top, bottom + 1):
+                        for y in range(left, right + 1):
+                            takenPix.append((x, y))
 
-                        # Shows the image in image viewer
-                        panel.show()
-                        exit = 1
+                    # Crop, show, repeat
+                    panel = im.crop((left, top, right, bottom))
+                    panel.show()
 
-                    else:
-                        print("Something is wrong")
-                j = 0
-            i = 0
-        i = i + 1
+                    findPanel(im)
+                else:
+                    print("Something is wrong")
+
+            elif (i, j) in takenPix:
+                print(i, ", ", j, " already taken.")
+                i = i + 1
+        j = 0
+    i = 0
+
 
 
 
