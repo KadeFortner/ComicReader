@@ -1,8 +1,7 @@
 # Kade Fortner
-# Capstone stuff
+# Comix Reader
 
 from PIL import Image
-import time
 
 # This loads our image, determines it's height and width to prepare a new image, then determines the RGB values for
 # each pixel.
@@ -34,6 +33,10 @@ def isBlack(pixel, minValue):
 
 # Panel finding function
 def findPanel(image):
+    global panels
+    global takenPix
+
+    print(width, height)
     # We go through each pixel
     for j in range(height):
         for i in range(width):
@@ -46,6 +49,7 @@ def findPanel(image):
                     print("i = ", i, ". j = ", j)
                 elif isBlack(pix[i, j], 0):
                     print("FOUND A BLACKish PIXEL AT i = " + str(i) + " and j = " + str(j))
+                    newIm.putpixel((i, j), (0, 0, 255))
 
                     # When the first black pixel is found, we assume it the start of the panel
                     # We set our cropping coordinates accordingly
@@ -55,6 +59,7 @@ def findPanel(image):
                     # From here, we continue to the right until we encounter a non-black pixel
                     while isBlack(pix[i, j], 0):
                         print("FOUND A BLACKish PIXEL AT i = " + str(i) + " and j = " + str(j))
+                        newIm.putpixel((i, j), (0, 0, 255))
                         i = i + 1
                         print("i = ", i, ". j = ", j)
 
@@ -65,6 +70,7 @@ def findPanel(image):
                     # We now move to the downwards until we find a non-black pixel
                     while isBlack(pix[i, j], 0):
                         print("FOUND A BLACKish PIXEL AT i = " + str(i) + " and j = " + str(j))
+                        newIm.putpixel((i, j), (0, 0, 255))
                         j = j + 1
                         print("i = ", i, ". j = ", j)
 
@@ -77,20 +83,29 @@ def findPanel(image):
                     print("Left = ", left)
                     print("Right = ", right)
                     print("Bottom = ", bottom)
+
                     # Add this to our number of panels found
-                    global panels
                     panels = panels + 1
                     print("Done with", panels, "panel(s)")
+
                     # We now store the entirety of the panel's coordinates
-                    for x in range(top, bottom + 1):
-                        for y in range(left, right + 1):
+                    for y in range(top, bottom + 1):
+                        for x in range(left, right + 1):
                             takenPix.append((x, y))
 
+                    # We now add anything in between our panels and remove duplicates
+                    for m in range(takenPix[0][1], takenPix[-1][1]):
+                        for n in range(takenPix[0][0], takenPix[-1][0]):
+                            takenPix.append((n, m))
+                    takenPix = list(dict.fromkeys(takenPix))
+
+                    newIm.show()
                     # Crop, show, repeat
                     panel = im.crop((left, top, right, bottom))
                     panel.show()
 
                     findPanel(im)
+
                 else:
                     print("Something is wrong")
 
@@ -101,53 +116,9 @@ def findPanel(image):
     i = 0
 
 
-
-
 #############################
 ###         Main          ###
 #############################
 
 
 findPanel(im)
-
-
-
-
-'''
-# We now iterate through our list of pixels, using our isBlack function to determine if said pixel is within our
-# designated color spectrum. In this case, black.
-count = 0;
-
-for i in range(width):
-    for j in range(height):
-        if isBlack(pix[i, j], 0, 240):
-            newIm.putpixel((i, j), (0, 0, 255))
-            count = count + 1
-            print("FOUND A BLACKish PIXEL AT X = " + str(i) + " and Y = " + str(j))
-            x = i
-            while isBlack(pix[x, j], 0, 240):
-                x = x + 1
-                print("New pixel: ", pix[x, j])
-                print("At X = ", x, " and j = ", j)
-            i = x
-            top = x * j
-            y = j
-            while isBlack(pix[x, y], 0, 240):
-                y = y + 1
-                print("New pixel: ", pix[x, y])
-                print("At X = ", x, " and y = ", y)
-            j = y
-
-            # This will mask the found pixels in blue in a new image.
-            # newIm.putpixel((i, j), (0, 0, 255))
-        else:
-            print("NON-COLORED PIXEL AT X = " + str(i) + " and Y = " + str(j))
-
-
-# We end by showing our current count of total pixels found/confirmed, then show our previous image, followed by the
-# new image, masked in blue.
-
-print(count)
-im.show()
-newIm.show()
-'''
