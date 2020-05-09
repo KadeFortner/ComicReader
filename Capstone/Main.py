@@ -1,5 +1,5 @@
 # Kade Fortner
-# Comix Reader
+# Capstone stuff
 
 from PIL import Image
 
